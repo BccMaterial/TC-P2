@@ -64,6 +64,5 @@ def main():
         print("Solução encontrada:")
         imprimir_tabuleiro(tabuleiro_numeros, solucao_estados)
 
-
 if __name__ == "__main__":
     main()

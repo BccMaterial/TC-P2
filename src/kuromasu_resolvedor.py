@@ -19,6 +19,7 @@ from kuromasu_modelo import (
     contar_visiveis,
 )
 
+posicoes_numeradas_global = None
 
 def inicializar_estados(tabuleiro_numeros):
     """
@@ -84,16 +85,45 @@ def verificar_regras_finais(tabuleiro_numeros, tabuleiro_estados, posicoes_numer
 
 
 def escolher_proxima_celula(tabuleiro_numeros, tabuleiro_estados):
-    """
-    Estratégia simples: devolve a primeira célula DESCONHECIDA.
-    """
+
+    #Utiliza a heurística MRV(Minimum Remaining Values) para escolher a célula desconhecida que possui o menor número de estados possíveis(branco/preto) sem violar imediatamente as regras parciais.
+
     quantidade_linhas, quantidade_colunas = dimensoes(tabuleiro_estados)
+
+    melhor_celula = None
+    menor_opcoes = 999  # Deve ser grande o suficiente
+
     for i in range(quantidade_linhas):
         for j in range(quantidade_colunas):
             if tabuleiro_estados[i][j] == ESTADO_DESCONHECIDO:
-                return i, j
-    return None, None  # não existe
 
+                opcoes = 0
+
+                # Verifica se branco é possível
+                tabuleiro_estados[i][j] = ESTADO_BRANCO
+                if verificar_intervalos_numeros(tabuleiro_numeros, tabuleiro_estados, posicoes_numeradas_global):
+                    opcoes += 1
+
+                # Verifica se preto é possível
+                tabuleiro_estados[i][j] = ESTADO_PRETO
+                if (tabuleiro_numeros[i][j] is None and
+                    verificar_preto_nao_adjacente(tabuleiro_estados, i, j) and
+                    verificar_intervalos_numeros(tabuleiro_numeros, tabuleiro_estados, posicoes_numeradas_global)):
+                    opcoes += 1
+
+                # Reset
+                tabuleiro_estados[i][j] = ESTADO_DESCONHECIDO
+
+                # Realiza a poda caso encontre uma célula impossível
+                if opcoes == 0:
+                    return i, j
+
+                # Pega a mais restrita
+                if opcoes < menor_opcoes:
+                    menor_opcoes = opcoes
+                    melhor_celula = (i, j)
+
+    return melhor_celula
 
 def buscar_solucao(tabuleiro_numeros, tabuleiro_estados, posicoes_numeradas):
     """
@@ -131,13 +161,15 @@ def buscar_solucao(tabuleiro_numeros, tabuleiro_estados, posicoes_numeradas):
 
     return False
 
-
 def resolver_kuromasu(tabuleiro_numeros):
     """
     Função de alto nível: recebe a matriz de números (None para sem número)
     e devolve a matriz de estados (BRANCO/PRETO) ou None se não houver solução.
     """
     tabuleiro_estados, posicoes_numeradas = inicializar_estados(tabuleiro_numeros)
+
+    global posicoes_numeradas_global
+    posicoes_numeradas_global = posicoes_numeradas
 
     if buscar_solucao(tabuleiro_numeros, tabuleiro_estados, posicoes_numeradas):
         # devolve uma cópia para não vazar o objeto interno
