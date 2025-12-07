@@ -53,7 +53,7 @@ def main():
     #tabuleiro_numeros = criar_tabuleiro_exemplo()
 
     # Ler do arquivo
-    caminho = "tabuleiro_kuromasu.txt"
+    caminho = "../tabuleiro_kuromasu.txt"
     tabuleiro_numeros = ler_tabuleiro_de_arquivo(caminho)
 
     solucao_estados = resolver_kuromasu(tabuleiro_numeros)
